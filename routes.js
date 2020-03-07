@@ -5,4 +5,9 @@ module.exports = function(app) {
 
   app.route('/')
     .get(controller.index);
+
+  app.route('/webhook')
+    .get(controller.verifyWebhook);
+  app.route('/webhook')
+    .post(controller.handleWebhookEvent);
 };
