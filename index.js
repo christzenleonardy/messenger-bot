@@ -11,7 +11,10 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 var routes = require('./routes');
 routes(app);
+app.use(express.static(__dirname + '/static'));
 
-app.listen(port, () => {
+var server = app.listen(port, () => {
   console.log('Express server is listening on port ' + port);
 });
+
+module.exports = server;

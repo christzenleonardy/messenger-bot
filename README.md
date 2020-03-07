@@ -24,6 +24,11 @@ Before running the service, make sure you have a working zen personal assistant 
 
 Note: If you plan to run your database on different host, make sure to update the host, user, and password at `conn.js`.
 
+## Testing API Service
+```
+npm test
+```
+
 ## Run API Service
 ```
 npm start

@@ -3,6 +3,12 @@
 module.exports = function(app) {
   var controller = require('./controller');
 
+  app.route('/*')
+    .get(function(req, res, next){
+      res.setHeader('Last-Modified', (new Date()).toUTCString());
+      next();
+    });
+
   app.route('/')
     .get(controller.index);
 

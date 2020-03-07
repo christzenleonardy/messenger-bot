@@ -7,75 +7,71 @@ const model = require('./model');
 var response = require('./res');
 const INTERNAL_ERROR = 'Internal Server Error';
 
-exports.index = function(req, res) {
+function index(req, res) {
   response.ok('Hello from the Node JS RESTful side!', res);
 };
 
-exports.getAllMessages = function(req, res) {
+function getAllMessages(req, res) {
   model.getAllMessages((err, data) => {
     if (err) {
       response.fail(INTERNAL_ERROR, res);
+    } else {
+      response.ok(data, res);
     }
-    response.ok(data, res);
   });
 };
 
-exports.getMessagesPerUser = function(req, res) {
+function getMessagesPerUser(req, res) {
   const { user_id } = req.query;
 
   if (user_id) {
     model.getMessagesPerUser(user_id, (err, data) => {
       if (err) {
         response.fail(INTERNAL_ERROR, res);
-      }
-
-      if (data.length === 0) {
-        response.fail('user doesn\'t have any messages', res);
+      } else if (data.length === 0) {
+        response.notFound('user doesn\'t have any messages', res);
       } else {
         response.ok(data, res);
       }
     });
   } else {
-    response.fail('requires user_id', res);
+    response.badRequest('requires user_id', res);
   }
 };
 
-exports.getMessage = function(req, res) {
+function getMessage(req, res) {
   const { message_id } = req.query;
 
   if (message_id) {
     model.getMessage(message_id, (err, data) => {
       if (err) {
         response.fail(INTERNAL_ERROR, res);
-      }
-
-      if (!data) {
-        response.fail('message not found', res);
+      } else if (!data) {
+        response.notFound('message not found', res);
       } else {
         response.ok(data, res);
       }
     });
   } else {
-    response.fail('requires message_id', res);
+    response.badRequest('requires message_id', res);
   }
 };
 
-exports.deleteMessage = function(req, res) {
+function deleteMessage(req, res) {
   const { message_id } = req.body;
 
   if (message_id) {
     model.delMessage(message_id, (err, data) => {
       if (err) {
         response.fail(INTERNAL_ERROR, res);
-      }
-      if (data === 0) {
-        response.fail('message not found', res);
+      } else if (data === 0) {
+        response.notFound('message not found', res);
       } else {
         response.ok('message successfully deleted', res);
       }
     });
   } else {
-    response.fail('requires message_id', res);
+    response.badRequest('requires message_id', res);
   }
 };
 
@@ -92,72 +88,77 @@ function getUserData(user_id) {
       reject('requires user_id');
     }
   });
-}
+};
 
 function addNewUser(user_id) {
   if (user_id) {
     model.addUser(user_id, (err) => {
       if (err) {
         console.log(err);
+      } else {
+        console.log(`user ${user_id} successfully added`);
       }
-      console.log(`user ${user_id} successfully added`);
     });
   } else {
     console.log('requires user_id');
   }
-}
+};
 
 function updateUserName(user_id, name) {
   if (user_id && name) {
     model.updateUserName(user_id, name, (err) => {
       if (err) {
         console.log(err);
+      } else {
+        console.log(`user ${user_id}\'s name successfully updated`);
       }
-      console.log(`user ${user_id}\'s name successfully updated`);
     });
   } else {
     console.log('requires user_id and name');
   }
-}
+};
 
 function updateBirthDate(user_id, birth_date) {
   if (user_id && birth_date) {
     model.updateBirthDate(user_id, birth_date, (err) => {
       if (err) {
         console.log(err);
+      } else {
+        console.log(`user ${user_id}\'s birth date successfully updated`);
       }
-      console.log(`user ${user_id}\'s birth date successfully updated`);
     });
   } else {
     console.log('requires user_id and birth_date');
   }
-}
+};
 
 function updateStep(user_id, new_step) {
   if (user_id && new_step) {
     model.updateStep(user_id, new_step, (err) => {
       if (err) {
         console.log(err);
+      } else {
+        console.log(`user ${user_id}\'s current step successfully updated`);
       }
-      console.log(`user ${user_id}\'s current step successfully updated`);
     });
   } else {
     console.log('requires user_id and curr_step');
   }
-}
+};
 
 function addMessage(user_id, content) {
   if (user_id && content) {
     model.addMessage(user_id, content, (err) => {
       if (err) {
         console.log(err);
+      } else {
+        console.log(`user ${user_id}\'s message successfully added`);
       }
-      console.log(`user ${user_id}\'s message successfully added`);
     });
   } else {
     console.log('requires user_id and content');
   }
-}
+};
 
 function getDaysBetween(end_date) {
   const start_date = moment(moment().format('YYYY-MM-DD'));
@@ -171,9 +172,9 @@ function getDaysBetween(end_date) {
   } else {
     return moment([next_birthday + 1, next_birthday[1], next_birthday[2]]).diff(start_date, 'days');
   }
-}
+};
 
-exports.verifyWebhook = function(req, res) {
+function verifyWebhook(req, res) {
   let VERIFY_TOKEN = 'interview-messenger-bot';
 
   let mode = req.query['hub.mode'];
@@ -190,7 +191,7 @@ exports.verifyWebhook = function(req, res) {
   }
 };
 
-exports.handleWebhookEvent = function(req, res) {
+function handleWebhookEvent(req, res) {
   let body = req.body;
 
   if (body.object === 'page') {
@@ -303,7 +304,6 @@ async function handleMessage(sender_psid, received_message) {
   }
 }
 
-// Sends response messages via the Send API
 function callSendAPI(sender_psid, response) {
   let request_body = {
     recipient: {
@@ -324,4 +324,21 @@ function callSendAPI(sender_psid, response) {
       console.error('Unable to send message:' + err);
     }
   });
-}
+};
+
+module.exports.index = index;
+module.exports.getAllMessages = getAllMessages;
+module.exports.getMessagesPerUser = getMessagesPerUser;
+module.exports.getMessage = getMessage;
+module.exports.deleteMessage = deleteMessage;
+module.exports.getUserData = getUserData;
+module.exports.addNewUser = addNewUser;
+module.exports.updateUserName = updateUserName;
+module.exports.updateBirthDate = updateBirthDate;
+module.exports.updateStep = updateStep;
+module.exports.addMessage = addMessage;
+module.exports.getDaysBetween = getDaysBetween;
+module.exports.verifyWebhook = verifyWebhook;
+module.exports.handleWebhookEvent = handleWebhookEvent;
+module.exports.handleMessage = handleMessage;
+module.exports.callSendAPI = callSendAPI;
