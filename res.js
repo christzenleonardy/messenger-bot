@@ -8,3 +8,12 @@ exports.ok = function(values, res) {
   res.json(data);
   res.end();
 };
+
+exports.fail = function(data, res) {
+  var resp = {
+    status: 500,
+    data: data,
+  };
+  res.json(resp);
+  res.end();
+};

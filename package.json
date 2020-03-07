@@ -1,6 +1,6 @@
 {
   "name": "messenger-bot",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -26,7 +26,9 @@
   "homepage": "https://github.com/christzenleonardy/messenger-bot#readme",
   "dependencies": {
     "body-parser": "^1.19.0",
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "mysql": "^2.18.1",
+    "request": "^2.88.2"
   },
   "devDependencies": {
     "eslint": "^6.8.0",
