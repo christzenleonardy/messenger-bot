@@ -1,8 +1,8 @@
 'use strict';
 
 module.exports = function(app) {
-    var controller = require('./controller');
+  var controller = require('./controller');
 
-    app.route('/')
-        .get(controller.index);
+  app.route('/')
+    .get(controller.index);
 };
