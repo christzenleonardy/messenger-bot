@@ -3,7 +3,9 @@
 This is a messenger bot that will help you count how many days until your next birthday. This bot also use some basics natural language processing from facebook to process user's sentiments.
 
 ## Demo
-You can check out the demo app at m.me/106874377597549.
+You can check out the demo messenger bot at http://m.me/106874377597549. This demo bot's service is deployed to Heroku Cloud Platform and its database is hosted on JawsDB MySQL. You can check out the main interaction from the gif below.
+
+![](assets/bot-demo.gif)
 
 Note: If the messenger bot doesn't work, feel free to contact me from my email christzenleonardy@gmail.com.
 
@@ -47,7 +49,7 @@ Feel free to deploy your service at a cloud-based service like Heroku or AWS EC2
 ./ngrok http 3000
 ```
 You can use the URLs in red bracket for your webhook URL at the next step.
-![ngrok_screenshot](.\assets\ngrok-screenshot.png)
+![ngrok_screenshot](assets/ngrok-screenshot.png)
 
 ## Setting Up Your Facebook App
 You can follow the guide here at https://developers.facebook.com/docs/messenger-platform/getting-started/app-setup.
