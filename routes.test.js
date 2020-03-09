@@ -1,51 +1,44 @@
 const request = require('supertest');
-var server;
+var server = require('./index.js');
 
-describe('index', function() {
-  beforeEach(function () {
-    server = require('./index.js');
-  });
-  afterEach(function () {
-    server.close();
-  });
-
-  it('should create a new get', async () => {
+describe('test index', function() {
+  it('should always return true', async () => {
     const res = await request(server)
       .get('/');
     expect(res.status).toEqual(200);
     expect(res.body).toHaveProperty('status');
     expect(res.body).toHaveProperty('values');
     expect(res.body.status).toEqual(200);
+    expect(res.body.values).toEqual('Hello from the Node JS RESTful side!');
     expect(Array.isArray(res.body.values)).toBe(false);
   });
 });
 
-describe('verifyWebhook', function() {
-  beforeEach(function () {
-    server = require('./index.js');
-  });
-  afterEach(function () {
-    server.close();
-  });
-
-  it('should accept challenge', async () => {
+describe('testing verifyWebhook', function() {
+  it('should accept challenge if mode === subscribe and token === verification_token', async () => {
     const res = await request(server)
       .get('/webhook?hub.verify_token=interview-messenger-bot' +
         '&hub.challenge=CHALLENGE_ACCEPTED&hub.mode=subscribe');
     expect(res.status).toEqual(200);
     expect(res.text).toBe('CHALLENGE_ACCEPTED');
   });
+
+  it('should not accept if mode !== subscribe or token !== verification_token', async () => {
+    const res = await request(server)
+      .get('/webhook?hub.verify_token=hello-bot' +
+        '&hub.challenge=CHALLENGE_ACCEPTED&hub.mode=not-subscribe');
+    expect(res.status).toEqual(403);
+  });
+
+  it('should not accept if mode is empty or token is empty', async () => {
+    const res = await request(server)
+      .get('/webhook?hub.challenge=CHALLENGE_ACCEPTED');
+    expect(res.status).toEqual(403);
+  });
 });
 
 describe('handleWebhookEvent', function() {
-  beforeEach(function () {
-    server = require('./index.js');
-  });
-  afterEach(function () {
-    server.close();
-  });
-
-  it('should receive event', async () => {
+  it('should receive event if object === page', async () => {
     const data = {
       "object": "page",
       "entry": [{
@@ -63,16 +56,27 @@ describe('handleWebhookEvent', function() {
     expect(res.status).toEqual(200);
     expect(res.text).toBe('EVENT_RECEIVED');
   });
+
+  it('should return not found if object !== page', async () => {
+    const data = {
+      "object": "not page",
+      "entry": [{
+        "messaging": [{
+          "sender": {
+            "id": "4205658219460506"
+          },
+          "message": "TEST_MESSAGE"
+        }]
+      }]
+    };
+    const res = await request(server)
+      .post('/webhook')
+      .send(data);
+    expect(res.status).toEqual(404);
+  });
 });
 
 describe('all messages endpoint', function () {
-  beforeEach(function () {
-    server = require('./index.js');
-  });
-  afterEach(function () {
-    server.close();
-  });
-
   it('should create a new get', async () => {
     const res = await request(server)
       .get('/messages');
@@ -88,13 +92,6 @@ describe('all messages endpoint', function () {
 });
 
 describe('all messages per user endpoint', function () {
-  beforeEach(function () {
-    server = require('./index.js');
-  });
-  afterEach(function () {
-    server.close();
-  });
-
   it('should create a new get', async () => {
     const res = await request(server)
       .get('/user/messages?user_id=4205658219460506');
@@ -128,13 +125,6 @@ describe('all messages per user endpoint', function () {
 });
 
 describe('get message by id endpoint', function () {
-  beforeEach(function () {
-    server = require('./index.js');
-  });
-  afterEach(function () {
-    server.close();
-  });
-
   it('should create a new get', async () => {
     const res = await request(server)
       .get('/message?message_id=1');
@@ -169,13 +159,6 @@ describe('get message by id endpoint', function () {
 });
 
 describe('get message by id endpoint', function () {
-  beforeEach(function () {
-    server = require('./index.js');
-  });
-  afterEach(function () {
-    server.close();
-  });
-
   it('should return not found', async () => {
     const res = await request(server)
       .delete('/message')

@@ -1,6 +1,6 @@
 # Messenger Bot in Node.JS
 
-This is a messenger bot that will help you count how many days until your next birthday. This bot also use some basics natural language processing from facebook to process user's sentiments.
+This is a messenger bot which will assist you to count your next birthday down. This bot also uses some basic natural language processing from facebook to process the user's sentiments.
 
 ### Content
 
@@ -23,11 +23,11 @@ This is a messenger bot that will help you count how many days until your next b
 - Server: Heroku and/or Ngrok (localhost)
 
 ## Demo
-You can check out the demo messenger bot at http://m.me/106874377597549. This demo bot's service is deployed to Heroku Cloud Platform and its database is hosted on JawsDB MySQL. You can check out the main interaction from the gif below.
+You can check out the demo messenger bot at http://m.me/106874377597549. This demo bot service is deployed to Heroku Cloud Platform and its database is hosted on JawsDB MySQL. You can check out the main interaction from the gif below.
 
 ![](assets/bot-demo.gif)
 
-Note: If the messenger bot doesn't work, feel free to contact me from my email christzenleonardy@gmail.com.
+Note: If the messenger bot is not working properly, feel free to contact me at christzenleonardy@gmail.com.
 
 ## Documentation
 To see the list of services you can use from this API Web Service, please check out our [documentation](https://documenter.getpostman.com/view/6370911/SzRxV9xE).
@@ -37,7 +37,7 @@ Note: If the hyperlink doesn't work, you can open it at https://documenter.getpo
 ## Installation
 
 ### Installing Dependencies
-If you plan to run it yourself, you can continue these next steps. First, you need to install the dependencies.
+If you plan to run it by yourself, you can follow these steps. First, you need to install the required dependencies.
 ```
 npm install
 ```

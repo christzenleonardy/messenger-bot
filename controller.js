@@ -91,17 +91,22 @@ function getUserData(user_id) {
 };
 
 function addNewUser(user_id) {
-  if (user_id) {
-    model.addUser(user_id, (err) => {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log(`user ${user_id} successfully added`);
-      }
-    });
-  } else {
-    console.log('requires user_id');
-  }
+  return new Promise(function(resolve, reject) {
+    if (user_id) {
+      model.addUser(user_id, (err) => {
+        if (err) {
+          console.log(err);
+          reject(err);
+        } else {
+          console.log(`user ${user_id} successfully added`);
+          resolve();
+        }
+      });
+    } else {
+      console.log('requires user_id');
+      reject('requires user_id');
+    }
+  });
 };
 
 function updateUserName(user_id, name) {
@@ -146,18 +151,23 @@ function updateStep(user_id, new_step) {
   }
 };
 
-function addMessage(user_id, content) {
-  if (user_id && content) {
-    model.addMessage(user_id, content, (err) => {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log(`user ${user_id}\'s message successfully added`);
-      }
-    });
-  } else {
-    console.log('requires user_id and content');
-  }
+async function addMessage(user_id, content) {
+  return new Promise(function(resolve, reject) {
+    if (user_id && content) {
+      model.addMessage(user_id, content, (err) => {
+        if (err) {
+          console.log(err);
+          reject();
+        } else {
+          console.log(`user ${user_id}\'s message successfully added`);
+          resolve();
+        }
+      });
+    } else {
+      console.log('requires user_id and content');
+      reject();
+    }
+  });
 };
 
 function getDaysBetween(end_date) {
@@ -188,6 +198,8 @@ function verifyWebhook(req, res) {
     } else {
       res.sendStatus(403);
     }
+  } else {
+    res.sendStatus(403);
   }
 };
 
@@ -200,7 +212,7 @@ function handleWebhookEvent(req, res) {
       let sender_psid = webhook_event.sender.id;
 
       if (webhook_event.message) {
-        handleMessage(sender_psid, webhook_event.message);
+        exports.handleMessage(sender_psid, webhook_event.message);
       }
     });
     res.status(200).send('EVENT_RECEIVED');
@@ -212,20 +224,20 @@ function handleWebhookEvent(req, res) {
 async function handleMessage(sender_psid, received_message) {
   let response;
 
-  if (received_message.text) {
+  if (received_message && received_message.text) {
     try {
-      const user_data = await getUserData(sender_psid);
+      const user_data = await exports.getUserData(sender_psid);
       if (user_data) {
         switch (user_data.curr_step) {
           case 1:
-            updateUserName(sender_psid, received_message.text);
+            exports.updateUserName(sender_psid, received_message.text);
             response = {
               text: 'What a wonderful name! When is your birthday? (Answer in YYYY-MM-DD format)',
             };
             break;
           case 2:
             if (moment(received_message.text.toString()).isValid()){
-              updateBirthDate(sender_psid, received_message.text);
+              exports.updateBirthDate(sender_psid, received_message.text);
               response = {
                 text: 'Do you want to know how many days until your next birthday?',
               };
@@ -236,12 +248,12 @@ async function handleMessage(sender_psid, received_message) {
             }
             break;
           case 3:
-            updateStep(sender_psid, 5);
+            exports.updateStep(sender_psid, 5);
             const { sentiment } = received_message.nlp.entities;
             const yes_choice = sentiment[0].value === 'positive' ||
               (sentiment[0].value !== 'negative' && sentiment[1].value === 'positive');
             if (yes_choice) {
-              const days = getDaysBetween(user_data.birth_date);
+              const days = exports.getDaysBetween(user_data.birth_date);
               if (days === 0) {
                 response = {
                   text: `There are ${days} days left until your next birthday.` +
@@ -261,26 +273,26 @@ async function handleMessage(sender_psid, received_message) {
           case 4:
             switch (received_message.text) {
               case 'update':
-                updateStep(sender_psid, 1);
+                exports.updateStep(sender_psid, 1);
                 response = {
                   text: 'May I know your new name?',
                 };
                 break;
               case 'count':
-                updateStep(sender_psid, 3);
+                exports.updateStep(sender_psid, 3);
                 response = {
                   text: 'Do you want to know how many days until your next birthday?',
                 };
                 break;
               default:
-                updateStep(sender_psid, 5);
+                exports.updateStep(sender_psid, 5);
                 response = {
                   text: 'See you around',
                 };
             }
             break;
           default:
-            updateStep(sender_psid, 4);
+            exports.updateStep(sender_psid, 4);
             response = {
               text: `Hi, ${user_data.name}! Anything I can help? (You can update your data by sending 'update'` +
                 'or know how many days until your birthday by sending \'count\')',
@@ -290,7 +302,7 @@ async function handleMessage(sender_psid, received_message) {
         response = {
           text: 'Hi! Looks like you\'re new. May I know your name?',
         };
-        addNewUser(sender_psid);
+        exports.addNewUser(sender_psid);
       }
     } catch (err) {
       console.log(err);
@@ -299,30 +311,34 @@ async function handleMessage(sender_psid, received_message) {
       };
     }
 
-    callSendAPI(sender_psid, response);
-    addMessage(sender_psid, received_message.text);
+    await exports.addMessage(sender_psid, received_message.text);
+    return await exports.callSendAPI(sender_psid, response);
   }
 }
 
-function callSendAPI(sender_psid, response) {
-  let request_body = {
-    recipient: {
-      id: sender_psid,
-    },
-    message: response,
-  };
+async function callSendAPI(sender_psid, response) {
+  return new Promise(function(resolve, reject) {
+    let request_body = {
+      recipient: {
+        id: sender_psid,
+      },
+      message: response,
+    };
 
-  request({
-    uri: 'https://graph.facebook.com/v2.6/me/messages',
-    qs: { access_token: process.env.PAGE_ACCESS_TOKEN },
-    method: 'POST',
-    json: request_body,
-  }, (err, res, body) => {
-    if (!err) {
-      console.log('Message sent!');
-    } else {
-      console.error('Unable to send message:' + err);
-    }
+    request({
+      uri: 'https://graph.facebook.com/v2.6/me/messages',
+      qs: { access_token: process.env.PAGE_ACCESS_TOKEN },
+      method: 'POST',
+      json: request_body,
+    }, (err, res, body) => {
+      if (!err) {
+        console.log('Message sent!');
+        resolve();
+      } else {
+        console.error('Unable to send message:' + err);
+        reject();
+      }
+    });
   });
 };
 

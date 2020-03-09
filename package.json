@@ -42,6 +42,19 @@
     "testEnvironment": "node",
     "coveragePathIgnorePatterns": [
       "/node_modules/"
+    ],
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "*.{ts,js}",
+      "!conn.js",
+      "!index.js",
+      "!res.js"
+    ],
+    "coverageDirectory": "coverage",
+    "coverageReporters": [
+      "text",
+      "text-summary",
+      "html"
     ]
   },
   "eslintIgnore": [
