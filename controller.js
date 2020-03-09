@@ -268,7 +268,7 @@ async function handleMessage(sender_psid, received_message) {
               }
             } else {
               response = {
-                text: 'Goodbye',
+                text: 'Goodbye 👋🏻',
               };
             }
             break;
@@ -289,7 +289,7 @@ async function handleMessage(sender_psid, received_message) {
               default:
                 exports.updateStep(sender_psid, 5);
                 response = {
-                  text: 'See you around',
+                  text: 'See you around 👋🏻',
                 };
             }
             break;
