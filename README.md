@@ -8,6 +8,7 @@ This is a messenger bot which will assist you to count your next birthday down. 
 - [Demo](#demo)
 - [Documentation](#documentation)
 - [Installation](#installation)
+    - [Cloning The Repository](#cloning-the-repository)
     - [Installing Dependencies](#installing-dependencies)
     - [Preparing Database](#preparing-database)
     - [Testing API Service](#testing-api-service)
@@ -35,9 +36,16 @@ To see the list of services you can use from this API Web Service, please check 
 Note: If the hyperlink doesn't work, you can open it at https://documenter.getpostman.com/view/6370911/SzRxV9xE.
 
 ## Installation
+If you plan to run it by yourself, you can follow these steps.
+
+### Cloning The Repository
+Firstly, clone this repository.
+```
+git clone https://github.com/christzenleonardy/messenger-bot.git
+```
 
 ### Installing Dependencies
-If you plan to run it by yourself, you can follow these steps. First, you need to install the required dependencies.
+Move to the repository folder using `cd` and install the required dependencies.
 ```
 npm install
 ```
@@ -80,3 +88,7 @@ You can follow the guide here at https://developers.facebook.com/docs/messenger-
 1. Your webhook URL is the ngrok HTTPS URL or public address of your cloud-based service
 2. You can see the verify token as `VERIFY_TOKEN` at `controller.js` inside `verifyWebhook` function
 3. After you generate token for your authorized page, you can add it to `process.env.PAGE_ACCESS_TOKEN`.
+
+## Test Coverage
+
+\>= 95%
