@@ -1,157 +1,277 @@
 const moment = require('moment');
+const model = require('./model.js');
+const controller = require('./controller.js');
 
-const getUserData = require('./controller.js').getUserData;
-const addNewUser = require('./controller.js').addNewUser;
-const updateUserName = require('./controller.js').updateUserName;
-const updateBirthDate = require('./controller.js').updateBirthDate;
-const updateStep = require('./controller.js').updateStep;
-const addMessage = require('./controller.js').addMessage;
-const getDaysBetween = require('./controller.js').getDaysBetween;
-const verifyWebhook = require('./controller.js').verifyWebhook;
-const handleWebhookEvent = require('./controller.js').handleWebhookEvent;
-const handleMessage = require('./controller.js').handleMessage;
-const callSendAPI = require('./controller.js').callSendAPI;
+const sampleSenderId = '101';
+const sampleText = 'TEST_MESSAGE';
+const sampleName = 'first_name';
+const sampleUpcomingBirthDate = '2000-03-10';
+const samplePastBirthDate = '2000-02-22';
+const sampleCurrDate = '2020-03-01';
 
-describe('getUserData', function() {
-  it('should exist', function() {
-    expect(getUserData).toBeDefined();
+const mockedGetUserData = jest.spyOn(model, 'getUserData');
+const mockedAddNewUser = jest.spyOn(model, 'addUser');
+const mockedUpdateUserName = jest.spyOn(model, 'updateUserName');
+const mockedUpdateBirthDate = jest.spyOn(model, 'updateBirthDate');
+const mockedUpdateStep = jest.spyOn(model, 'updateStep');
+const mockedAddMessage = jest.spyOn(model, 'addMessage');
+
+jest.mock('request', () => {
+  return function(options, callback) {
+    if (options.json.message) {
+      callback(null, 'dummy data');
+    } else {
+      callback('err');
+    }
+  }
+});
+
+describe('testing controller', function() {
+  beforeEach(() => {
+    mockedGetUserData.mockReset();
+  })
+
+  it('success getting user data', async function() {
+    mockedGetUserData.mockResolvedValue({
+      name: 'first_name',
+      birth_date: '2000-03-10',
+      curr_step: 1
+    });
+
+    expect.assertions(1);
+    await controller.getUserData(sampleSenderId);
+
+    expect(mockedGetUserData).toBeCalledWith(sampleSenderId);
   });
 
-  it('should be a function', function() {
-    expect(typeof getUserData).toBe('function');
+  it('failed getting user data because missing user_id', async function() {
+    expect.assertions(2);
+    try {
+      await controller.getUserData();
+    } catch (e) {
+      expect(e).toEqual('requires user_id');
+    }
+
+    expect(mockedGetUserData).not.toBeCalled();
   });
 
-  it('should create a resolved promise', async function() {
-    const user_id = '4205658219460506';
-    const res = await getUserData(user_id);
-    expect(Array.isArray(res)).toBe(false);
-    expect(res).toHaveProperty('user_id');
-    expect(res).toHaveProperty('name');
-    expect(res).toHaveProperty('birth_date');
-    expect(res).toHaveProperty('curr_step');
-  });
+  it('failed getting user data because missing user_id', async function() {
+    mockedGetUserData.mockRejectedValue('err');
 
-  it('should create a resolved promise', async function() {
-    const user_id = '0';
-    await expect(getUserData(user_id)).resolves.toBe(undefined);
-  });
+    expect.assertions(2);
+    try {
+      await controller.getUserData(sampleSenderId);
+    } catch (e) {
+      expect(e).toEqual('err');
+    }
 
-  it('should create a rejected promise', async function() {
-    return expect(getUserData()).rejects.toMatch('requires user_id');
+    expect(mockedGetUserData).toBeCalled();
   });
 });
 
 describe('addNewUser', function() {
-  it('should exist', function() {
-    expect(addNewUser).toBeDefined();
+  beforeEach(() => {
+    mockedAddNewUser.mockReset();
   });
 
-  it('should be a function', function() {
-    expect(typeof addNewUser).toBe('function');
+  it('should add new user with id', function() {
+    mockedAddNewUser.mockResolvedValue();
+
+    controller.addNewUser(sampleSenderId);
+
+    expect(mockedGetUserData).toBeCalled();
+  });
+
+  it('should not add new user without id', async function() {
+    expect.assertions(2);
+    try {
+      await controller.addNewUser();
+    } catch (e) {
+      expect(e).toEqual('requires user_id');
+    }
+
+    expect(mockedAddNewUser).not.toBeCalled();
+  });
+
+  it('should not add new user without id', async function() {
+    mockedAddNewUser.mockRejectedValue('err');
+
+    expect.assertions(2);
+    try {
+      await controller.addNewUser(sampleSenderId);
+    } catch (e) {
+      expect(e).toEqual('err');
+    }
+
+    expect(mockedAddNewUser).toBeCalled();
   });
 });
 
 describe('updateUserName', function() {
-  it('should exist', function() {
-    expect(updateUserName).toBeDefined();
+  beforeEach(() => {
+    mockedUpdateUserName.mockReset();
   });
 
-  it('should be a function', function() {
-    expect(typeof updateUserName).toBe('function');
+  it('should update name', function() {
+    mockedUpdateUserName.mockResolvedValue();
+
+    controller.updateUserName(sampleSenderId, sampleName);
+
+    expect(mockedUpdateUserName).toBeCalled();
+  });
+
+  it('should return err', function() {
+    mockedUpdateUserName.mockRejectedValue('err');
+
+    controller.updateUserName(sampleSenderId, sampleName);
+
+    expect(mockedUpdateUserName).toBeCalled();
+  });
+
+  it('should not update name without user_id or name', function() {
+    controller.updateUserName();
+
+    expect(mockedUpdateUserName).not.toBeCalled();
   });
 });
 
 describe('updateBirthDate', function() {
-  it('should exist', function() {
-    expect(updateBirthDate).toBeDefined();
+  beforeEach(() => {
+    mockedUpdateBirthDate.mockReset();
   });
 
-  it('should be a function', function() {
-    expect(typeof updateBirthDate).toBe('function');
+  it('should update birth date', function() {
+    mockedUpdateBirthDate.mockResolvedValue();
+
+    controller.updateBirthDate(sampleSenderId, samplePastBirthDate);
+
+    expect(mockedUpdateBirthDate).toBeCalled();
+  });
+
+  it('should return err', function() {
+    mockedUpdateBirthDate.mockRejectedValue('err');
+
+    controller.updateBirthDate(sampleSenderId, samplePastBirthDate);
+
+    expect(mockedUpdateBirthDate).toBeCalled();
+  });
+
+  it('should not update name without user_id or birth_date', function() {
+    controller.updateBirthDate();
+
+    expect(mockedUpdateBirthDate).not.toBeCalled();
   });
 });
 
 describe('updateStep', function() {
-  it('should exist', function() {
-    expect(updateStep).toBeDefined();
+  beforeEach(() => {
+    mockedUpdateStep.mockReset();
   });
 
-  it('should be a function', function() {
-    expect(typeof updateStep).toBe('function');
+  it('should update step', function() {
+    mockedUpdateStep.mockResolvedValue();
+
+    controller.updateStep(sampleSenderId, 1);
+
+    expect(mockedUpdateStep).toBeCalled();
+  });
+
+  it('should return err', function() {
+    mockedUpdateStep.mockRejectedValue('err');
+
+    controller.updateStep(sampleSenderId, 1);
+
+    expect(mockedUpdateStep).toBeCalled();
+  });
+
+  it('should not update name without user_id or step', function() {
+    controller.updateStep();
+
+    expect(mockedUpdateStep).not.toBeCalled();
   });
 });
 
 describe('addMessage', function() {
-  it('should exist', function() {
-    expect(addMessage).toBeDefined();
+  beforeEach(() => {
+    mockedAddMessage.mockReset();
   });
 
-  it('should be a function', function() {
-    expect(typeof addMessage).toBe('function');
+  it('should add message', async function() {
+    mockedAddMessage.mockResolvedValue();
+
+    expect.assertions(1);
+    await controller.addMessage(sampleSenderId, sampleText);
+
+    expect(mockedAddMessage).toBeCalled();
+  });
+
+  it('should return err', async function() {
+    mockedAddMessage.mockRejectedValue('err');
+
+    expect.assertions(2);
+    try {
+      await controller.addMessage(sampleSenderId, sampleText);
+    } catch (err) {
+      expect(err).toEqual('err');
+    }
+
+    expect(mockedAddMessage).toBeCalled();
+  });
+
+  it('should not add message without user_id or content', async function() {
+    expect.assertions(2);
+    try {
+      await controller.addMessage();
+    } catch (err) {
+      expect(err).toEqual('requires user_id and content');
+    }
+
+    expect(mockedAddMessage).not.toBeCalled();
   });
 });
 
 describe('getDaysBetween', function() {
-  it('should exist', function() {
-    expect(getDaysBetween).toBeDefined();
+  it('should return zero', function() {
+    expect(controller.getDaysBetween(sampleUpcomingBirthDate, sampleUpcomingBirthDate)).toBe(0);
   });
 
-  it('should be a function', function() {
-    expect(typeof getDaysBetween).toBe('function');
+  it('should return 9', function() {
+    expect(controller.getDaysBetween(sampleCurrDate, sampleUpcomingBirthDate)).toBe(9);
   });
 
+  it('should return 358', function() {
+    expect(controller.getDaysBetween(sampleCurrDate, samplePastBirthDate)).toBe(358);
+  });
+});
+
+describe('getDaysFromNow', function() {
   it('should return zero', function() {
     const end_date = moment().format('YYYY-MM-DD');
-    expect(getDaysBetween(end_date)).toBe(0);
+
+    expect(controller.getDaysFromNow(end_date)).toBe(0);
   });
 
-  it('should return 1', function() {
-    const end_date = moment().add(1, 'days').format('YYYY-MM-DD');
-    expect(getDaysBetween(end_date)).toBe(1);
+  it('should return 9', function() {
+    const end_date = moment().add(9, 'days').format('YYYY-MM-DD');
+
+    expect(controller.getDaysFromNow(end_date)).toBe(9);
   });
 
-  it('should return 5', function() {
-    const end_date = moment().add(5, 'days').format('YYYY-MM-DD');
-    expect(getDaysBetween(end_date)).toBe(5);
-  });
-});
+  it('should return 358', function() {
+    const end_date = moment().add(358, 'days').format('YYYY-MM-DD');
 
-describe('verifyWebhook', function() {
-  it('should exist', function() {
-    expect(verifyWebhook).toBeDefined();
-  });
-
-  it('should be a function', function() {
-    expect(typeof verifyWebhook).toBe('function');
-  });
-});
-
-describe('handleWebhookEvent', function() {
-  it('should exist', function() {
-    expect(handleWebhookEvent).toBeDefined();
-  });
-
-  it('should be a function', function() {
-    expect(typeof handleWebhookEvent).toBe('function');
-  });
-});
-
-describe('handleMessage', function() {
-  it('should exist', function() {
-    expect(handleMessage).toBeDefined();
-  });
-
-  it('should be a function', function() {
-    expect(typeof handleMessage).toBe('function');
+    expect(controller.getDaysFromNow(end_date)).toBe(358);
   });
 });
 
 describe('callSendAPI', function() {
-  it('should exist', function() {
-    expect(callSendAPI).toBeDefined();
+  it('should resolve', async function() {
+    expect.assertions(1);
+    await expect(controller.callSendAPI(sampleSenderId, sampleText)).resolves.toEqual();
   });
 
-  it('should be a function', function() {
-    expect(typeof callSendAPI).toBe('function');
+  it('should return error', async function() {
+    expect.assertions(1);
+    await expect(controller.callSendAPI(sampleSenderId)).rejects.toEqual();
   });
 });

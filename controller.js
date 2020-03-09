@@ -3,185 +3,187 @@
 const request = require('request');
 const moment = require('moment');
 const model = require('./model');
+const response = require('./res');
 
-var response = require('./res');
 const INTERNAL_ERROR = 'Internal Server Error';
 
 function index(req, res) {
   response.ok('Hello from the Node JS RESTful side!', res);
 };
 
-function getAllMessages(req, res) {
-  model.getAllMessages((err, data) => {
-    if (err) {
-      response.fail(INTERNAL_ERROR, res);
-    } else {
-      response.ok(data, res);
-    }
-  });
+async function getAllMessages(req, res) {
+  try {
+    const data = await model.getAllMessages();
+    response.ok(data, res);
+  } catch (err) {
+    response.fail(INTERNAL_ERROR, res);
+  }
 };
 
-function getMessagesPerUser(req, res) {
+async function getMessagesPerUser(req, res) {
   const { user_id } = req.query;
 
   if (user_id) {
-    model.getMessagesPerUser(user_id, (err, data) => {
-      if (err) {
-        response.fail(INTERNAL_ERROR, res);
-      } else if (data.length === 0) {
+    try {
+      const data = await model.getMessagesPerUser(user_id);
+      if (data.length === 0) {
         response.notFound('user doesn\'t have any messages', res);
       } else {
         response.ok(data, res);
       }
-    });
+    } catch (err) {
+      response.fail(INTERNAL_ERROR, res);
+    }
   } else {
     response.badRequest('requires user_id', res);
   }
 };
 
-function getMessage(req, res) {
+async function getMessage(req, res) {
   const { message_id } = req.query;
 
   if (message_id) {
-    model.getMessage(message_id, (err, data) => {
-      if (err) {
-        response.fail(INTERNAL_ERROR, res);
-      } else if (!data) {
+    try {
+      const data = await model.getMessage(message_id);
+      if (!data) {
         response.notFound('message not found', res);
       } else {
         response.ok(data, res);
       }
-    });
+    } catch (err) {
+      response.fail(INTERNAL_ERROR, res);
+    }
   } else {
     response.badRequest('requires message_id', res);
   }
 };
 
-function deleteMessage(req, res) {
+async function deleteMessage(req, res) {
   const { message_id } = req.body;
 
   if (message_id) {
-    model.delMessage(message_id, (err, data) => {
-      if (err) {
-        response.fail(INTERNAL_ERROR, res);
-      } else if (data === 0) {
+    try {
+      const data = await model.delMessage(message_id);
+      if (data === 0) {
         response.notFound('message not found', res);
       } else {
         response.ok('message successfully deleted', res);
       }
-    });
+    } catch (err) {
+      response.fail(INTERNAL_ERROR, res);
+    }
   } else {
     response.badRequest('requires message_id', res);
   }
 };
 
-function getUserData(user_id) {
-  return new Promise(function(resolve, reject) {
+async function getUserData(user_id) {
+  return new Promise(async function(resolve, reject) {
     if (user_id) {
-      model.getUserData(user_id, (err, data) => {
-        if (err) {
-          reject(err);
-        }
+      try {
+        const data = await model.getUserData(user_id);
         resolve(data);
-      });
-    } else {
-      reject('requires user_id');
-    }
-  });
-};
-
-function addNewUser(user_id) {
-  return new Promise(function(resolve, reject) {
-    if (user_id) {
-      model.addUser(user_id, (err) => {
-        if (err) {
-          console.log(err);
-          reject(err);
-        } else {
-          console.log(`user ${user_id} successfully added`);
-          resolve();
-        }
-      });
-    } else {
-      console.log('requires user_id');
-      reject('requires user_id');
-    }
-  });
-};
-
-function updateUserName(user_id, name) {
-  if (user_id && name) {
-    model.updateUserName(user_id, name, (err) => {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log(`user ${user_id}\'s name successfully updated`);
+      } catch (err) {
+        reject(err);
       }
-    });
+    } else {
+      reject('requires user_id');
+    }
+  });
+};
+
+async function addNewUser(user_id) {
+  return new Promise(async function(resolve, reject) {
+    if (user_id) {
+      try {
+        await model.addUser(user_id);
+        console.log(`user ${user_id} successfully added`);
+        resolve();
+      } catch (err) {
+        console.error(err);
+        reject(err);
+      }
+    } else {
+      console.error('requires user_id');
+      reject('requires user_id');
+    }
+  });
+};
+
+async function updateUserName(user_id, name) {
+  if (user_id && name) {
+    try {
+      await model.updateUserName(user_id, name);
+      console.log(`user ${user_id}\'s name successfully updated`);
+    } catch (err) {
+      console.error(err);
+    }
   } else {
     console.log('requires user_id and name');
   }
 };
 
-function updateBirthDate(user_id, birth_date) {
+async function updateBirthDate(user_id, birth_date) {
   if (user_id && birth_date) {
-    model.updateBirthDate(user_id, birth_date, (err) => {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log(`user ${user_id}\'s birth date successfully updated`);
-      }
-    });
+    try {
+      await model.updateBirthDate(user_id, birth_date);
+      console.log(`user ${user_id}\'s birth date successfully updated`);
+    } catch (err) {
+      console.error(err);
+    }
   } else {
-    console.log('requires user_id and birth_date');
+    console.error('requires user_id and birth_date');
   }
 };
 
-function updateStep(user_id, new_step) {
+async function updateStep(user_id, new_step) {
   if (user_id && new_step) {
-    model.updateStep(user_id, new_step, (err) => {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log(`user ${user_id}\'s current step successfully updated`);
-      }
-    });
+    try {
+      await model.updateStep(user_id, new_step);
+      console.log(`user ${user_id}\'s current step successfully updated`);
+    } catch (err) {
+      console.error(err);
+    }
   } else {
-    console.log('requires user_id and curr_step');
+    console.error('requires user_id and curr_step');
   }
 };
 
 async function addMessage(user_id, content) {
-  return new Promise(function(resolve, reject) {
+  return new Promise(async function(resolve, reject) {
     if (user_id && content) {
-      model.addMessage(user_id, content, (err) => {
-        if (err) {
-          console.log(err);
-          reject();
-        } else {
-          console.log(`user ${user_id}\'s message successfully added`);
-          resolve();
-        }
-      });
+      try {
+        await model.addMessage(user_id, content);
+        console.log(`user ${user_id}\'s message successfully added`);
+        resolve();
+      } catch (err) {
+        console.error(err);
+        reject(err);
+      }
     } else {
-      console.log('requires user_id and content');
-      reject();
+      console.error('requires user_id and content');
+      reject('requires user_id and content');
     }
   });
 };
 
-function getDaysBetween(end_date) {
-  const start_date = moment(moment().format('YYYY-MM-DD'));
+function getDaysBetween(start_date, end_date) {
+  const moment_start_date = moment(start_date);
   const date = end_date.toString().split('-');
-  const next_birthday = [moment().format('YYYY'), parseInt(date[1], 10) - 1, date[2]];
+  const next_birthday = [parseInt(moment_start_date.format('YYYY'), 10), parseInt(date[1], 10) - 1, date[2]];
 
-  if (start_date.isSame(moment(next_birthday))) {
+  if (moment_start_date.isSame(moment(next_birthday))) {
     return 0;
-  } else if (start_date.isBefore(moment(next_birthday))) {
-    return moment(next_birthday).diff(start_date, 'days');
+  } else if (moment_start_date.isBefore(moment(next_birthday))) {
+    return moment(next_birthday).diff(moment_start_date, 'days');
   } else {
-    return moment([next_birthday + 1, next_birthday[1], next_birthday[2]]).diff(start_date, 'days');
+    return moment([next_birthday[0] + 1, next_birthday[1], next_birthday[2]]).diff(moment_start_date, 'days');
   }
+};
+
+function getDaysFromNow(end_date) {
+  const start_date = moment().format('YYYY-MM-DD');
+  return exports.getDaysBetween(start_date, end_date);
 };
 
 function verifyWebhook(req, res) {
@@ -253,7 +255,7 @@ async function handleMessage(sender_psid, received_message) {
             const yes_choice = sentiment[0].value === 'positive' ||
               (sentiment[0].value !== 'negative' && sentiment[1].value === 'positive');
             if (yes_choice) {
-              const days = exports.getDaysBetween(user_data.birth_date);
+              const days = exports.getDaysFromNow(user_data.birth_date);
               if (days === 0) {
                 response = {
                   text: `There are ${days} days left until your next birthday.` +
@@ -305,7 +307,7 @@ async function handleMessage(sender_psid, received_message) {
         exports.addNewUser(sender_psid);
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
       response = {
         text: 'Oops, sorry. Can you message me again some time later?',
       };
@@ -335,7 +337,7 @@ async function callSendAPI(sender_psid, response) {
         console.log('Message sent!');
         resolve();
       } else {
-        console.error('Unable to send message:' + err);
+        console.error('Unable to send message: ' + err);
         reject();
       }
     });
@@ -354,6 +356,7 @@ module.exports.updateBirthDate = updateBirthDate;
 module.exports.updateStep = updateStep;
 module.exports.addMessage = addMessage;
 module.exports.getDaysBetween = getDaysBetween;
+module.exports.getDaysFromNow = getDaysFromNow;
 module.exports.verifyWebhook = verifyWebhook;
 module.exports.handleWebhookEvent = handleWebhookEvent;
 module.exports.handleMessage = handleMessage;

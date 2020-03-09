@@ -6,7 +6,7 @@
   "scripts": {
     "start": "npx nodemon ./index.js",
     "pretest": "eslint --ignore-path .jshintignore --ignore-pattern .gitignore .",
-    "test": "npx jest"
+    "test": "npx jest --silent"
   },
   "repository": {
     "type": "git",
@@ -48,7 +48,8 @@
       "*.{ts,js}",
       "!conn.js",
       "!index.js",
-      "!res.js"
+      "!res.js",
+      "!model.js"
     ],
     "coverageDirectory": "coverage",
     "coverageReporters": [
