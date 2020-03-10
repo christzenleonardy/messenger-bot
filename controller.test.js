@@ -16,7 +16,7 @@ const mockedUpdateBirthDate = jest.spyOn(model, 'updateBirthDate');
 const mockedUpdateStep = jest.spyOn(model, 'updateStep');
 const mockedAddMessage = jest.spyOn(model, 'addMessage');
 
-jest.mock('./conn');
+jest.mock('./conn.js', () => {});
 
 jest.mock('request', () => {
   return function(options, callback) {
