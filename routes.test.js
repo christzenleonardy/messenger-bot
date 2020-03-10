@@ -11,6 +11,8 @@ const mockedGetMessage = jest.spyOn(model, 'getMessage');
 const mockedDeleteMessage = jest.spyOn(model, 'delMessage');
 const mockedHandleMessage = jest.spyOn(controller, 'handleMessage');
 
+jest.mock('./conn');
+
 describe('test index', function() {
   it('should always return true', async () => {
     expect.assertions(6);

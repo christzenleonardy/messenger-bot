@@ -16,6 +16,8 @@ const mockedAddMessage = jest.spyOn(controller, 'addMessage');
 const mockedCallSendAPI = jest.spyOn(controller, 'callSendAPI');
 const mockedgetDaysFromNow = jest.spyOn(controller, 'getDaysFromNow');
 
+jest.mock('./conn');
+
 describe('testing chat flow', function() {
   beforeEach(() => {
     mockedGetUserData.mockReset();
